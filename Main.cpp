@@ -1,6 +1,6 @@
 #include "iostream"
 #include "math.h"
-#include "chrono"
+#include "time.h"
 #include "vector"
 #include "queue"
 #include "cstdlib"
@@ -18,7 +18,7 @@
 using namespace std;
 
 void init();
-void display(int);
+void display();
 void player_game(bool);
 void update();
 void gravity();
@@ -43,6 +43,7 @@ int main(){
 	
 	init();
 	initutils();
+	srand(time(NULL));
 	int cursor = 0;
 	player = true;
 
@@ -77,18 +78,18 @@ addspaces();cout<<"|    // _ \\| __/ _` | __/ _ \\ / / /_| |"<<endl;
 addspaces();cout<<"| |\\ | (_) | || (_| | ||  __// /\\___  |"<<endl;
 addspaces();cout<<"\\_| \\_\\___/ \\__\\__,_|\\__\\___/_/     |_/"<<endl;
 cout<<"\n\nChoose: \n\t1)Play Game(1 Player);\n\t2)Play Game(2 Player);\n\t3)Help;\n\t4)Quit :'(\nChoice: ";
-int x;
+char x;
 bool loop = true;
-cin>>x;
-{
-	if(x==1){state=1;loop=false;}
-	else if(x==2) {
+x=tolower(getch());
+do{
+	if(x=='1'){state=1;loop=false;}
+	else if(x=='2') {
 	state = 2;loop=false;}
-	else if(x==3){ state=3;loop=false;}
-	else if(x==4){running = false;loop=false;}
+	else if(x=='3'){ state=3;loop=false;}
+	else if(x=='4'||x=='q'){running = false;loop=false;}
 	else{
 		cout<<"\nTry Again: ";
-		cin>>x;}
+		x=getch();}
 }while(loop);
 	
 }
@@ -110,7 +111,7 @@ void helpscr(){
 }
 
 void player_game(bool move){
-	display(cursor);
+	display();
 	char inp = getch();
 	while(1){
 		inp=tolower(inp);
@@ -128,7 +129,7 @@ void player_game(bool move){
 		else if(inp=='l') {rotr(1);break;}
 		else if(inp=='k') {rotr(2);break;}
 		else if(inp=='j') {rotr(-1);break;}
-		display(cursor);
+		display();
 		inp = getch();
 	}
 }
@@ -182,22 +183,27 @@ void update(){
 	updatestate();
 	//Win Check
 	if(wincheck(state1)){
-		display(0);
+		cursor=0;
+		display();
 		cout<<"\n\n";
 		setColor(BACKGROUND_RED|BACKGROUND_INTENSITY);
 		addspaces();
 		cout<<"RED WINS!!!";
 		setColor(BACKGROUND_BLUE|BACKGROUND_GREEN|BACKGROUND_INTENSITY);
 		cout<<"\n\nPress anything to return to menu...";getch();state=0;
+		init();
 	}
+
 	if(wincheck(state2)){
-		display(0);
+		cursor = 0;
+		display();
 		cout<<"\n\n";
 		setColor(BACKGROUND_RED|BACKGROUND_GREEN|BACKGROUND_INTENSITY);
 		addspaces();
 		cout<<"YELLOW WINS!!!";
 		setColor(BACKGROUND_BLUE|BACKGROUND_GREEN|BACKGROUND_INTENSITY);
 		cout<<"\n\nPress anything to return to menu...";getch();state=0;
+		init();
 	}
 }
 
@@ -233,7 +239,7 @@ void gravity(){
 	}
 }
 
-void display(int cursor){
+void display(){
 	
 	system("cls");
 	addspaces();
@@ -290,9 +296,48 @@ void display(int cursor){
 
 // 1 Player Logic
 
+void player_chance();
+void ai_chance();
 
 void play1p(){
-	cout<<"NYet";
-	getch();
-	state = 0;
+	
+	player = (rand()%5)>=2;
+	while(state==1){
+		if(player){
+			player_chance();
+		}
+		else{
+			ai_chance();	
+		}
+		player = !player;
+		display();
+	}
+}
+
+void player_chance(){
+		char inp = getch();
+		while(1){
+		inp=tolower(inp);
+		if(inp=='d' && cursor<7) cursor++;
+		else if(inp=='a' && cursor>0) cursor--;
+		else if(inp=='q') {
+		running = false;return;}
+		else if(inp=='s'||inp==' '){
+			if(field[0][cursor]==' '){
+				field[0][cursor] = 'X';
+				update();
+				break;
+			}
+		}
+		else if(inp=='l') {rotr(1);break;}
+		else if(inp=='k') {rotr(2);break;}
+		else if(inp=='j') {rotr(-1);break;}
+		display();
+		inp = getch();
+	}
+}
+
+void ai_chance(){
+	cout<<"LOL";
+	getch();	
 }
