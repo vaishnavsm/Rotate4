@@ -1,15 +1,12 @@
-#include "iostream"
-#include "math.h"
+#include <iostream>
 #include "time.h"
-#include "vector"
-#include "queue"
-#include "cstdlib"
-#include "algorithm"
-#include "iterator"
 #include "conio.h"
+#include <cstdlib>
 #include "precompiler.h"
 #include "utils.h"
 #include "windows.h"
+#include "ai.h"
+#include "main.h"
 
 #define BLOCK  '\xDB'
 #define TOP  '\xDF'
@@ -36,6 +33,7 @@ int state2[8][8];
 bool running = true;
 bool player = true;
 int cursor=0;
+Ai *ai = NULL;
 
 int state = 0;
 
@@ -43,6 +41,7 @@ int main(){
 	
 	init();
 	initutils();
+	ai=new Ai(&field);
 	srand(time(NULL));
 	int cursor = 0;
 	player = true;
@@ -52,9 +51,9 @@ int main(){
 	while(running){
 		switch(state){
 		case 0: mainscr(); break;
+		case 1: play1p(); break;
 		case 2:	play2p();break;
 		case 3: helpscr(); break;
-		case 1: play1p(); break;
 	}}
 	
 	return 0;
@@ -118,7 +117,7 @@ void player_game(bool move){
 		if(inp=='d' && cursor<7) cursor++;
 		else if(inp=='a' && cursor>0) cursor--;
 		else if(inp=='q') {
-		running = false;return;}
+		state=0;return;}
 		else if(inp=='s'||inp==' '){
 			if(field[0][cursor]==' '){
 				field[0][cursor] = move?'X':'O';
@@ -300,9 +299,11 @@ void player_chance();
 void ai_chance();
 
 void play1p(){
-	
 	player = (rand()%5)>=2;
+	cursor = 0;
+	display();
 	while(state==1){
+		update();
 		if(player){
 			player_chance();
 		}
@@ -310,6 +311,7 @@ void play1p(){
 			ai_chance();	
 		}
 		player = !player;
+		update();
 		display();
 	}
 }
@@ -321,7 +323,7 @@ void player_chance(){
 		if(inp=='d' && cursor<7) cursor++;
 		else if(inp=='a' && cursor>0) cursor--;
 		else if(inp=='q') {
-		running = false;return;}
+		state=0;return;}
 		else if(inp=='s'||inp==' '){
 			if(field[0][cursor]==' '){
 				field[0][cursor] = 'X';
@@ -338,6 +340,29 @@ void player_chance(){
 }
 
 void ai_chance(){
-	cout<<"LOL";
-	getch();	
+	do{
+		ai->play();
+	}while(!ai->isdone());
+}
+
+void AIF::placeAt(int x){
+	cursor = x;
+	field[0][x] = 'O';
+	update();
+	display();
+}
+
+void AIF::rotateClock(){
+	rotr(1);
+	display();
+}
+
+void AIF::rotateAnti(){
+	rotr(-1);
+	display();
+}
+
+void AIF::rotateUSD(){
+	rotr(2);
+	display();
 }
