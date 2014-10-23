@@ -37,8 +37,7 @@ bool wincheck(int state[8][8]){
 					buff = (buff<<1); 
 					buff+=state[p][q];
 			}}
-//			cout<<"BUFF "<<buff<<endl;
-	for(set<uint64_t>::iterator iter=sol.begin();iter!=sol.end();iter++) {/*cout<<(*iter&buff)<<","<<*iter<<endl;*/ if((*iter&buff)==*iter) return true;}
+	for(set<uint64_t>::iterator iter=sol.begin();iter!=sol.end();iter++) {if((*iter&buff)==*iter) return true;}
 	
 	return false;
 	
@@ -74,4 +73,26 @@ void addspaces(){
 		SetConsoleTextAttribute (hCon,BGATTR);
 		cout<<"\t\t";
 		SetConsoleTextAttribute(hCon,attr);
+}
+
+void winpiece(int (*arr)[8], const int (*st)[8][8]){
+		uint64_t buff=0,bx;
+	for(int p=0;p<8;p++){
+			for(int q=0;q<8;q++) {
+					buff = (buff<<1); 
+					buff+=(*st)[p][q];
+			}}
+	for(set<uint64_t>::iterator iter=sol.begin();iter!=sol.end();iter++) {if((*iter&buff)==*iter){buff = (*iter&buff); break;}}
+	bx=buff;
+	int pos[4] = {0,0,0,0};
+	int i=1,c=0;
+	while(bx!=0 && i<65 && c<4){
+		if ((bx&1)==1) {pos[c]=64-i; c++;}
+		bx/=2;
+		i++;
+	}
+	for(int s=0;s<4;s++){
+		(*arr)[2*s] = (pos[s]/8);
+		(*arr)[(2*s)+1] = (pos[s]%8);
+	}
 }

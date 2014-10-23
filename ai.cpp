@@ -14,8 +14,8 @@
 
 using namespace std;
 
-
 vector<int> ddvec;
+vector<int> prefvec;
 
 void Ai::rot(int degree, char(*f)[8][8]){
 	int n = 8;
@@ -93,9 +93,7 @@ void Ai::play(){
 }
 
 void setmark(map<int,int> *m, int x, int y){
-	if((*m)[x]*(*m)[x]<y*y){/*cout<<endl<<"changing from "<<(*m)[x]<<" to "<<y<<endl;*/ (*m)[x] = y;}
-	//else{cout<<endl<<"not changing from "<<(*m)[x]<<" to "<<y<<endl;
-	//}
+	if(((*m)[x]*(*m)[x])<(y*y)){(*m)[x] = y;}
 }
 
 void Ai::stage1(bool *res){
@@ -119,13 +117,34 @@ void Ai::stage1(bool *res){
 			getstate(&st2, t0, 'X');
 			if(wincheck(st2)){if(j==i) {setmark(&mark, i, 500); break;}else setmark(&mark, i, -499);}
 		}
-			memcpy(t0,s0,sizeof(s0));
+		
+		
+		
+		memcpy(t0,s0,sizeof(s0));
 			
-			t0[0][i] = 'X';
-			grav(&t0);	
-			int st2[8][8];
-			getstate(&st2, t0, 'X');
-			if(wincheck(st2)){setmark(&mark, i, -500);}
+		t0[0][i] = 'X';
+		grav(&t0);	
+		int st2[8][8];
+		getstate(&st2, t0, 'X');
+		if(wincheck(st2)){setmark(&mark, i, -250);}
+		
+		memcpy(t0,s0,sizeof(s0));
+		
+		rot(1,&t0);
+		getstate(&st2, t0, 'X');
+		if(wincheck(st2)){setmark(&mark, i, -250);}
+		
+		memcpy(t0,s0,sizeof(s0));
+		
+		rot(2,&t0);
+		getstate(&st2, t0, 'X');
+		if(wincheck(st2)){setmark(&mark, i, -250);}
+		
+		memcpy(t0,s0,sizeof(s0));
+		
+		rot(-1,&t0);
+		getstate(&st2, t0, 'X');
+		if(wincheck(st2)){setmark(&mark, i, -250);}
 			
 		//TO IMPLEMENT -
 		/*
@@ -155,7 +174,8 @@ void Ai::stage1(bool *res){
 	mark.erase(mov->first);
 	auto mov2 = max_element(mark.begin(), mark.end(), [](const pair<int,int> &p1, const pair<int,int> &p2){return (p1.second)<(p2.second);});
 	
-	for(auto iter = mark.begin(); iter!=mark.end();iter++) if(iter->second<0) ddvec.push_back(iter->first);
+	for(auto iter = mark.begin(); iter!=mark.end();iter++){ if(iter->second<0) ddvec.push_back(iter->first);
+	else if(iter->second == mov->second && mov->second!=0) prefvec.push_back(iter->first);}
 	
 	if((mov->second != mov2->second) && mov->second!=0){
 			cout<<"\n[NIC: ]I think I'll do this\n";
@@ -179,6 +199,7 @@ void Ai::stage3(bool *res){
 void Ai::noise(){
 	int r;
 	bool flag = true;
+	if(prefvec.empty()){
 	do{
 		flag=false;
 		r = rand()%18;
@@ -186,6 +207,11 @@ void Ai::noise(){
 			flag=true;break;
 		}
 	}while(flag);
+	}else{
+		r = prefvec.at(rand()%prefvec.size());
+	}
+	
+	
 	cout<<"\n[NIC: ] Hmm, I don't know...  I think I'll do this...\n";
 	if(r<15){cout<<"Nic puts a piece in the "<<(r/2 + 1)<<(r/2+1==1?"st":r/2+1==2?"nd":r/2+1==3?"rd":"th")<<" Row";getch(); AIF::placeAt(r/2);}
 	else if(r==15){cout<<"Nic Rotates the board Clockwise";getch();AIF::rotateClock();}

@@ -2,11 +2,10 @@
 #define ROT4_AI_MODULE
 
 #include <iostream>
-#include <vector>
 
 void cr(char &a, char &b, char &c, char &d);
-void log(char x[8][8]){std::cout<<std::endl<<"---\n";for(int i=0;i<8;i++){for(int j=0;j<8;j++) {std::cout<<x[i][j]<<" ";}std::cout<<std::endl;}std::cout<<"---"<<std::endl;}
-void log(int x[8][8]){std::cout<<std::endl<<"---\n";for(int i=0;i<8;i++){for(int j=0;j<8;j++) {std::cout<<x[i][j]<<" ";}std::cout<<std::endl;}std::cout<<"---"<<std::endl;}
+//void log(char x[8][8]){std::cout<<std::endl<<"---\n";for(int i=0;i<8;i++){for(int j=0;j<8;j++) {std::cout<<x[i][j]<<" ";}std::cout<<std::endl;}std::cout<<"---"<<std::endl;}
+//void log(int x[8][8]){std::cout<<std::endl<<"---\n";for(int i=0;i<8;i++){for(int j=0;j<8;j++) {std::cout<<x[i][j]<<" ";}std::cout<<std::endl;}std::cout<<"---"<<std::endl;}
 void getstate(int (*state)[8][8], char a[8][8], char x);
 
 class  Ai{

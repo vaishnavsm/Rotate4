@@ -11,5 +11,6 @@ void putHalfBlockLine(bool);
 void setCursor(const int,const int);
 void setColor(WORD);
 void addspaces();
+void winpiece(int (*arr)[8], const int (*st)[8][8]);
 
 #endif

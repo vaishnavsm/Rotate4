@@ -182,6 +182,11 @@ void update(){
 	updatestate();
 	//Win Check
 	if(wincheck(state1)){
+		int winpc[8]={0,0,0,0,0,0,0,0};
+		winpiece(&winpc,&state1);
+		for(int i = 0;i<8;i+=2){
+			field[winpc[i]][winpc[i+1]] = 'B';
+		}
 		cursor=0;
 		display();
 		cout<<"\n\n";
@@ -194,6 +199,11 @@ void update(){
 	}
 
 	if(wincheck(state2)){
+		int winpc[8]={0,0,0,0,0,0,0,0};
+		winpiece(&winpc,&state2);
+		for(int i = 0;i<8;i+=2){
+			field[winpc[i]][winpc[i+1]] = 'V';
+		}
 		cursor = 0;
 		display();
 		cout<<"\n\n";
@@ -258,6 +268,18 @@ void display(){
 			} 
 			else if(ch=='O') {
 				setColor(FOREGROUND_RED|FOREGROUND_GREEN|FOREGROUND_INTENSITY);
+				cout <<BLOCK<<BLOCK<<BLOCK;
+				setColor(BACKGROUND_BLUE|BACKGROUND_GREEN|FOREGROUND_BLUE|FOREGROUND_INTENSITY);
+				cout<<BLOCK;
+			}
+			else if(ch=='B'){
+				setColor(FOREGROUND_RED);
+				cout <<BLOCK<<BLOCK<<BLOCK;
+				setColor(BACKGROUND_BLUE|BACKGROUND_GREEN|FOREGROUND_BLUE|FOREGROUND_INTENSITY);
+				cout<<BLOCK;
+			} 
+			else if(ch=='V') {
+				setColor(FOREGROUND_RED|FOREGROUND_GREEN);
 				cout <<BLOCK<<BLOCK<<BLOCK;
 				setColor(BACKGROUND_BLUE|BACKGROUND_GREEN|FOREGROUND_BLUE|FOREGROUND_INTENSITY);
 				cout<<BLOCK;
