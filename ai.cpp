@@ -84,10 +84,10 @@ void Ai::play(){
 	memcpy(t2,s2,sizeof(s2)); rot(2,&t2);
 	memcpy(t3,s3,sizeof(s3)); rot(-1,&t3);
 	
-	bool res=true;
+	bool res=false;
 	stage1(&res);
 	if(!res) stage2(&res);
-	if(!res) stage3(&res);
+	if(!res && rand()%10>=7) stage3(&res);
 	if(!res) noise();
 	done();
 }
@@ -102,7 +102,7 @@ void Ai::stage1(bool *res){
 	for(int i=0;i<11;i++) mark[i]=0;
 	//Same field
 	for(int i=0;i<8;i++){
-		s0[0][i] = 'O';
+		if(s0[0][i]==' '){ s0[0][i] = 'O';
 		grav(&s0);
 		int state[8][8];
 		getstate(&state,s0, 'O');
@@ -111,22 +111,22 @@ void Ai::stage1(bool *res){
 		for(int j=0;j<8;j++){
 			memcpy(t0,*field,sizeof(*field));
 			
-			t0[0][j] = 'X';
+			if(t0[0][j]==' '){ t0[0][j] = 'X';
 			grav(&t0);	
 			int st2[8][8];
 			getstate(&st2, t0, 'X');
-			if(wincheck(st2)){if(j==i) {setmark(&mark, i, 500); break;}else setmark(&mark, i, -499);}
+			if(wincheck(st2)){if(j==i) {setmark(&mark, i, 500); break;}else setmark(&mark, i, -499);}}
 		}
 		
-		
+		}
 		
 		memcpy(t0,s0,sizeof(s0));
+			int st2[8][8];
 			
-		t0[0][i] = 'X';
+		if(t0[0][i]==' '){t0[0][i] = 'X';
 		grav(&t0);	
-		int st2[8][8];
 		getstate(&st2, t0, 'X');
-		if(wincheck(st2)){setmark(&mark, i, -250);}
+		if(wincheck(st2)){setmark(&mark, i, -250);}}
 		
 		memcpy(t0,s0,sizeof(s0));
 		
@@ -145,11 +145,7 @@ void Ai::stage1(bool *res){
 		rot(-1,&t0);
 		getstate(&st2, t0, 'X');
 		if(wincheck(st2)){setmark(&mark, i, -250);}
-			
-		//TO IMPLEMENT -
-		/*
-		*Enemy turns board and he wins(prevent)
-		*/
+		
 		memcpy(s0,*field,sizeof(*field));
 		memcpy(t0,s0,sizeof(s0));
 	}
@@ -190,10 +186,74 @@ void Ai::stage1(bool *res){
 	}
 }
 void Ai::stage2(bool *res){
+	//Learning
+	
+	
 	*res = false;
 }
 void Ai::stage3(bool *res){
+	//Entropy Maximising
+	/* Entropy of a board, G = S(O) - S(X)
+	 *
+	 * S(h) = [(Number of placements such that no h's are next to others) + (Number of placements such that a group of 2 is formed)
+	 *		  +(Number of placements such that a group of 3 is formed)]/4
+	 * Note, If a group of 4 is formed, that is a win condition, and will be dealt with in stage1().
+	 * Also note, it seems that all the criteria have same weightage, but in reality, the first is counted once, the second twice and the third thrice.
+	 */
+	 int besti=0,bestent=0;
+	for(int i=0;i<8;i++){
+		memcpy(s0,*field,sizeof(*field));
+		if(s0[0][i]==' '){s0[0][i]='O'; grav(&s0);
+		int ent = getEntropy(&s0);
+		if(ent>bestent){besti=i; bestent=ent;}
+	}}
+	if(bestent>0){
+		cout<<"\n[NIC: ] OK... Let me try this.\n";
+		if(besti<8){cout<<"Nic puts a piece in the "<<besti +1<<(besti+1==1?"st":besti+1==2?"nd":besti+1==3?"rd":"th")<<" Row";getch(); AIF::placeAt(besti);}
+		
+		*res=true;
+		return;
+	}
 	*res = false;
+}
+
+int comp(char (*field)[8][8], int i, int j, int i1,int j1, char c){
+	int s=0;
+	if(i>=0&&i<8){if((*field)[i][j]==c) {s+=2;	if(i1>=0&&i1<8){if((*field)[i1][j1]==c)		{s+=2;} else if((*field)[i1][j1]==' '){s++;}}}
+	else if((*field)[i][j]==' '){s++;}}
+}
+
+long int getEntropy(char (*field)[8][8]){
+	 long int G,S_O,S_X; G=0;S_O=0;S_X=0;
+	 for(int i=0;i<8;i++)for(int j=0;j<8;j++){
+	 	char c = (*field)[i][j];
+	 	int s = 0,s0=0;
+	 	if(c=='X'||c=='O'){
+	 	s=comp(field, i-1,j,i-2,j, c);
+	 	if(s){s0+=s+1;s=0;}
+	 	s=comp(field, i-1, j-1, i-2, j-2, c);
+		if(s){s0+=s+1;s=0;}
+	 	s=comp(field, i, j-1, i, j-2, c);
+	 	if(s){s0+=s+1;s=0;}
+	 	s=comp(field, i+1, j-1, i+2, j-2, c);
+	 	if(s){s0+=s+1;s=0;}
+	 	s=comp(field, i+1, j, i+2, j, c);
+	 	if(s){s0+=s+1;s=0;}
+	 	s=comp(field, i+1, j+1, i+2, j+2, c);
+	 	if(s){s0+=s+1;s=0;}
+	 	s=comp(field, i, j+1, i, j+2, c);
+	 	if(s){s0+=s+1;s=0;}
+	 	s=comp(field, i-1, j+1, j-2, j+2, c);
+	 	if(s){s0+=s+1;}
+	 	if(s0==0) s0=1;
+	 	}
+	 	
+	 	if(c=='X') S_X+=s0;
+	 	else if(c=='O') S_O+=s0;
+	 }
+	G=(S_O-S_X);
+	return G;	
+	
 }
 
 void Ai::noise(){
@@ -206,6 +266,7 @@ void Ai::noise(){
 		for(auto iter=ddvec.begin();iter!=ddvec.end();iter++) if((r/2==*iter)||((r==15)&&(*iter==8))||((r==16)&&(*iter==9))||((r==17)&&(*iter==10))){
 			flag=true;break;
 		}
+		if(r/2<8) if((*field)[0][r/2] !=' ') flag = true;
 	}while(flag);
 	}else{
 		r = prefvec.at(rand()%prefvec.size());
