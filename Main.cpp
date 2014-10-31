@@ -251,6 +251,7 @@ void gravity(){
 void display(){
 	
 	system("cls");
+	cout<<endl;
 	addspaces();
 	setColor(BACKGROUND_BLUE|BACKGROUND_GREEN|BACKGROUND_INTENSITY|FOREGROUND_BLUE|FOREGROUND_INTENSITY);
 	putHalfBlockLine(false);putchar('\n');

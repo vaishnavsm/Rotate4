@@ -14,9 +14,16 @@
 
 using namespace std;
 
+//Thresholds
+int threshold_score = -1000;
+int threshold_entropy_me=3;
+int threshold_entropy_enemy=1;
+
+
 vector<int> ddvec;
 vector<int> prefvec;
 
+map<int,int> mark;
 void Ai::rot(int degree, char(*f)[8][8]){
 	int n = 8;
 	if(degree==1){
@@ -53,7 +60,7 @@ void cr(char &a, char &b, char &c, char &d)
    d = temp;
 }
 
-void Ai::grav(char (*f)[8][8]){
+void grav(char (*f)[8][8]){
 		for(int i = 0;i<8; i++){
 		int spot=0;
 		for(int j=7;j>0;j--){
@@ -87,7 +94,7 @@ void Ai::play(){
 	bool res=false;
 	stage1(&res);
 	if(!res) stage2(&res);
-	if(!res && rand()%10>=7) stage3(&res);
+	if(!res) stage3(&res);
 	if(!res) noise();
 	done();
 }
@@ -98,7 +105,7 @@ void setmark(map<int,int> *m, int x, int y){
 
 void Ai::stage1(bool *res){
 	cout<<"\n[NIC: ] OK,my turn...";
-	map<int,int> mark;
+	mark.clear();
 	for(int i=0;i<11;i++) mark[i]=0;
 	//Same field
 	for(int i=0;i<8;i++){
@@ -168,8 +175,8 @@ void Ai::stage1(bool *res){
 	
 	auto mov = max_element(mark.begin(), mark.end(), [](const pair<int,int> &p1, const pair<int,int> &p2){return (p1.second)<(p2.second);});
 	mark.erase(mov->first);
-	auto mov2 = max_element(mark.begin(), mark.end(), [](const pair<int,int> &p1, const pair<int,int> &p2){return (p1.second)<(p2.second);});
-	
+	auto mov2 = max_element(mark.begin(), mark.end(), [](const pair<int,int> &p1, const pair<int,int> &p2){return(p1.second)<(p2.second);});
+	mark[mov->first]=mov->second;
 	for(auto iter = mark.begin(); iter!=mark.end();iter++){ if(iter->second<0) ddvec.push_back(iter->first);
 	else if(iter->second == mov->second && mov->second!=0) prefvec.push_back(iter->first);}
 	
@@ -188,7 +195,6 @@ void Ai::stage1(bool *res){
 void Ai::stage2(bool *res){
 	//Learning
 	
-	
 	*res = false;
 }
 void Ai::stage3(bool *res){
@@ -201,20 +207,67 @@ void Ai::stage3(bool *res){
 	 * Also note, it seems that all the criteria have same weightage, but in reality, the first is counted once, the second twice and the third thrice.
 	 */
 	 int besti=0,bestent=0;
+	 map<int,int> smap;
+	 map<int,int> score;
 	for(int i=0;i<8;i++){
 		memcpy(s0,*field,sizeof(*field));
 		if(s0[0][i]==' '){s0[0][i]='O'; grav(&s0);
-		int ent = getEntropy(&s0);
-		if(ent>bestent){besti=i; bestent=ent;}
+		smap[i]=getEntropy(&s0);
 	}}
-	if(bestent>0){
-		cout<<"\n[NIC: ] OK... Let me try this.\n";
-		if(besti<8){cout<<"Nic puts a piece in the "<<besti +1<<(besti+1==1?"st":besti+1==2?"nd":besti+1==3?"rd":"th")<<" Row";getch(); AIF::placeAt(besti);}
+	memcpy(s0,*field,sizeof(*field));
+	rot(1,&s0);
+	if(!redwin(&s0)) smap[8]=getEntropy(&s0);
+	
+	memcpy(s0,*field,sizeof(*field));
+	rot(2,&s0);
+	if(!redwin(&s0)) smap[9]=getEntropy(&s0);
+	
+	memcpy(s0,*field,sizeof(*field));
+	rot(-1,&s0);
+	if(!redwin(&s0)) smap[10]=getEntropy(&s0);
 		
+	int s_0 = getEntropy(field);
+	
+	for(auto iter = smap.begin();iter!=smap.end();iter++){
+		if(ddvec.end()!=find(ddvec.begin(),ddvec.end(),iter->first) || (iter->second-s_0)<0){smap.erase(iter);}
+		else
+			score[iter->first] = (7*(iter->second)+13*mark[iter->first])/20;
+	}
+	if(!score.empty()){
+	auto mov = max_element(score.begin(),score.end(),[](const pair<int,int> &p1, const pair<int,int> &p2){return (p1.second)<(p2.second);});
+	score.erase(mov);
+	auto mov2 = max_element(score.begin(),score.end(),[](const pair<int,int> &p1, const pair<int,int> &p2){return (p1.second)<(p2.second);});
+	score[mov->first]=mov->second;
+	
+	if(mov->second!=mov2->second&&mov->second>threshold_score){
+		cout<<"\n[NIC: ] OK... Let me try this.\n";
+		if(mov->first<8){cout<<"Nic puts a piece in the "<<mov->first +1<<(mov->first+1==1?"st":mov->first+1==2?"nd":mov->first+1==3?"rd":"th")<<" Row";getch(); AIF::placeAt(mov->first);}
+		else if(mov->first==8){cout<<"Nic Rotates the board clockwise";getch(); AIF::rotateClock();}
+		else if(mov->first==9){cout<<"Nic Rotates the board Upside Down";getch(); AIF::rotateUSD();}
+		else if(mov->first==10){cout<<"Nic Rotates the board Anti-Clockwise";getch(); AIF::rotateAnti();}
 		*res=true;
 		return;
 	}
+	
+	}else
 	*res = false;
+}
+
+bool redwin(char (*s)[8][8]){
+	char f[8][8];
+	memcpy(f,*s,sizeof(*s));
+	int s0[8][8];
+	getstate(&s0,*s,'X');
+	if(wincheck(s0)) return true;
+	for(int i=0;i<8;i++){
+		if((*s)[0][i]!=' ') continue;
+		f[0][i]='X';
+		grav(&f);
+		getstate(&s0,f,'X');
+		if(wincheck(s0)) return true;
+		memcpy(f,*s,sizeof(*s));
+	}
+	return false;
 }
 
 int comp(char (*field)[8][8], int i, int j, int i1,int j1, char c){
@@ -251,7 +304,7 @@ long int getEntropy(char (*field)[8][8]){
 	 	if(c=='X') S_X+=s0;
 	 	else if(c=='O') S_O+=s0;
 	 }
-	G=(S_O-S_X);
+	G=(threshold_entropy_me*S_O-threshold_entropy_enemy*S_X);
 	return G;	
 	
 }
